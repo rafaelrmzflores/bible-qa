@@ -786,3 +786,16 @@ html body input.bqa-input:focus {
   border-color: #4a7c59 !important;
   box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.12) !important;
 }
+
+html body .bqa-single-wrap .bqa-featured-image {
+    margin: 1.5rem 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+}
+
+html body .bqa-single-wrap .bqa-featured-image-img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 8px !important;
+    display: inline-block !important;
+}

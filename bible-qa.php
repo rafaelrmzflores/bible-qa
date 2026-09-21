@@ -19,7 +19,7 @@ define( 'BQA_VERSION', '1.0.0' );
 define( 'BQA_FILE', __FILE__ );
 define( 'BQA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BQA_URL',  plugin_dir_url( __FILE__ ) );
-define( 'BQA_DB_VERSION', '1.0.8' );
+define( 'BQA_DB_VERSION', '1.1.0' );
 
 /* -------------------------------------------------------------------------
  * Activation / Deactivation
@@ -153,6 +153,24 @@ function bqa_create_tables() {
         KEY created_at (created_at)
     ) $charset_collate;";
 
+    // Add to bqa_create_tables(), after the other CREATE TABLE statements
+
+    $sql_revisions = "CREATE TABLE {$prefix}bible_qa_revisions (
+        revision_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+        qa_id bigint(20) unsigned NOT NULL,
+        question varchar(500) NOT NULL,
+        answer longtext NOT NULL,
+        author_id bigint(20) unsigned NULL,
+        source_id bigint(20) unsigned NULL,
+        source_locator varchar(100) NULL,
+        user_id bigint(20) unsigned NULL,
+        created_at datetime NOT NULL,
+        PRIMARY KEY  (revision_id),
+        KEY qa_id (qa_id),
+        KEY created_at (created_at)
+    ) $charset_collate;";
+
+
     dbDelta( $sql_qa );
     dbDelta( $sql_authors );
     dbDelta( $sql_sources );
@@ -160,6 +178,7 @@ function bqa_create_tables() {
     dbDelta( $sql_terms );
     dbDelta( $sql_term_rel );
     dbDelta( $sql_log );
+    dbDelta( $sql_revisions );
 
     bqa_ensure_fulltext_index();
 
@@ -272,6 +291,26 @@ function bqa_seed_terms() {
     }
 }
 
+function bqa_maybe_add_featured_image_column() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'bible_qa';
+
+    $exists = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
+    if ( ! $exists ) {
+        return;
+    }
+
+    $has = $wpdb->get_var( $wpdb->prepare(
+        "SHOW COLUMNS FROM {$table} LIKE %s",
+        'featured_image_id'
+    ) );
+
+    if ( ! $has ) {
+        $wpdb->query( "ALTER TABLE {$table} ADD COLUMN featured_image_id BIGINT UNSIGNED NULL AFTER source_locator" );
+        $wpdb->query( "ALTER TABLE {$table} ADD KEY featured_image_id (featured_image_id)" );
+    }
+}
+
 /* -------------------------------------------------------------------------
  * Load plugin classes
  * ---------------------------------------------------------------------- */
@@ -282,6 +321,7 @@ require_once BQA_PATH . 'includes/class-single.php';
 require_once BQA_PATH . 'includes/class-archive.php';
 require_once BQA_PATH . 'includes/class-csv.php';
 require_once BQA_PATH . 'includes/class-admin.php';
+require_once BQA_PATH . 'includes/class-revisions.php';
 
 // Register hooks immediately. Do NOT wrap in plugins_loaded — that hook may
 // have already fired by the time this file loads, which is why the routes
@@ -290,6 +330,7 @@ BQA_REST::init();
 BQA_Shortcode::init();
 BQA_Single::init();
 BQA_Archive::init();
+BQA_Revisions::init();
 BQA_CSV::init();
 if ( is_admin() ) {
     BQA_Admin::init();

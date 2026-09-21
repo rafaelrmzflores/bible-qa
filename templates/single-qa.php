@@ -22,6 +22,17 @@ get_header();
         <header class="bqa-single-header">
             <h1 class="bqa-question"><?php echo esc_html( $qa->question ); ?></h1>
 
+            <?php if ( ! empty( $qa->featured_image_id ) ) : ?>
+                <figure class="bqa-featured-image">
+                    <?php echo wp_get_attachment_image(
+                        (int) $qa->featured_image_id,
+                        'large',
+                        false,
+                        [ 'class' => 'bqa-featured-image-img' ]
+                    ); ?>
+                </figure>
+            <?php endif; ?>
+
             <?php $refs = BQA_Admin::get_meta( $qa->id, 'scripture_refs' ); ?>
             <?php if ( $refs ) : ?>
                 <p class="bqa-scripture-refs">
