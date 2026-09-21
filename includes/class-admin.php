@@ -35,6 +35,15 @@ class BQA_Admin {
         add_submenu_page( self::MENU_SLUG, 'Sources', 'Sources', self::CAPABILITY, self::MENU_SLUG . '-sources', [ __CLASS__, 'render_sources_page' ] );
         add_submenu_page( self::MENU_SLUG, 'Import', 'Import', self::CAPABILITY, self::MENU_SLUG . '-import', [ __CLASS__, 'render_import_page' ] );
         add_submenu_page( self::MENU_SLUG, 'Export', 'Export', self::CAPABILITY, self::MENU_SLUG . '-export', [ __CLASS__, 'render_export_page' ] );
+        
+        add_submenu_page(
+            self::MENU_SLUG,
+            'Settings',
+            'Settings',
+            self::CAPABILITY,
+            self::MENU_SLUG . '-settings',
+            [ __CLASS__, 'render_settings_page' ]
+        );
     }
 
     /* =====================================================================
@@ -1539,5 +1548,63 @@ class BQA_Admin {
         $type = $_GET['bqa_notice'] === 'error' ? 'error' : 'success';
         $msg  = sanitize_text_field( wp_unslash( $_GET['bqa_message'] ) );
         echo '<div class="notice notice-' . esc_attr( $type ) . ' is-dismissible"><p>' . esc_html( $msg ) . '</p></div>';
+    }
+
+    public static function render_settings_page() {
+        if ( ! current_user_can( self::CAPABILITY ) ) {
+            return;
+        }
+
+        if ( isset( $_POST['bqa_save_settings'] ) && check_admin_referer( 'bqa_save_settings' ) ) {
+            $engine = isset( $_POST['search_engine'] ) && in_array( $_POST['search_engine'], [ 'native', 'searchwp' ], true )
+                ? $_POST['search_engine']
+                : 'native';
+
+            update_option( 'bqa_search_engine', $engine );
+
+            // Invalidate cache so the switch takes effect immediately
+            if ( class_exists( 'BQA_REST' ) ) {
+                BQA_REST::invalidate_cache();
+            }
+
+            echo '<div class="notice notice-success"><p>Settings saved.</p></div>';
+        }
+
+        $current = get_option( 'bqa_search_engine', 'native' );
+        $has_searchwp = class_exists( 'SearchWP' ) || defined( 'SEARCHWP_VERSION' );
+        ?>
+        <div class="wrap">
+            <h1>Bible Q&A — Settings</h1>
+            <form method="post">
+                <?php wp_nonce_field( 'bqa_save_settings' ); ?>
+                <input type="hidden" name="bqa_save_settings" value="1">
+
+                <table class="form-table">
+                    <tr>
+                        <th><label>Search Engine</label></th>
+                        <td>
+                            <fieldset>
+                                <label style="display:block; margin-bottom:6px;">
+                                    <input type="radio" name="search_engine" value="native" <?php checked( $current, 'native' ); ?>>
+                                    <strong>Native</strong> — Custom FULLTEXT + LIKE fallback. No dependencies.
+                                </label>
+                                <label style="display:block; <?php echo $has_searchwp ? '' : 'opacity:0.5;'; ?>">
+                                    <input type="radio" name="search_engine" value="searchwp" <?php checked( $current, 'searchwp' ); ?> <?php disabled( ! $has_searchwp ); ?>>
+                                    <strong>SearchWP</strong> — Requires the SearchWP plugin.
+                                    <?php if ( ! $has_searchwp ) : ?>
+                                        <em>(Not detected — activate SearchWP first.)</em>
+                                    <?php endif; ?>
+                                </label>
+                            </fieldset>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="submit">
+                    <button type="submit" class="button button-primary">Save Settings</button>
+                </p>
+            </form>
+        </div>
+        <?php
     }
 }

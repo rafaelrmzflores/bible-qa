@@ -322,6 +322,7 @@ require_once BQA_PATH . 'includes/class-archive.php';
 require_once BQA_PATH . 'includes/class-csv.php';
 require_once BQA_PATH . 'includes/class-admin.php';
 require_once BQA_PATH . 'includes/class-revisions.php';
+require_once BQA_PATH . 'includes/class-searchwp-source.php';
 
 // Register hooks immediately. Do NOT wrap in plugins_loaded — that hook may
 // have already fired by the time this file loads, which is why the routes

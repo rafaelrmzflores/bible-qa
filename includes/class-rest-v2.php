@@ -31,6 +31,13 @@ class BQA_REST {
      * ================================================================== */
 
     public static function suggest( WP_REST_Request $request ) {
+        
+        $engine = get_option( 'bqa_search_engine', 'native' );
+
+        if ( $engine === 'searchwp' && class_exists( '\SearchWP' ) ) {
+            return self::suggest_via_searchwp( $request );
+        }
+
         $q = trim( (string) $request->get_param( 'q' ) );
 
         if ( mb_strlen( $q ) < 2 ) {
@@ -100,6 +107,13 @@ class BQA_REST {
      * ================================================================== */
 
     public static function search( WP_REST_Request $request ) {
+
+        $engine = get_option( 'bqa_search_engine', 'native' );
+
+        if ( $engine === 'searchwp' && class_exists( '\SearchWP' ) ) {
+            return self::search_via_searchwp( $request );
+        }
+
         $q        = trim( (string) $request->get_param( 'q' ) );
         $per_page = min( max( (int) $request->get_param( 'per_page' ), 1 ), self::SEARCH_LIMIT );
         $term     = (string) $request->get_param( 'term' );
@@ -158,6 +172,46 @@ class BQA_REST {
         set_transient( $cache_key, $response, self::CACHE_TTL );
 
         return new WP_REST_Response( $response, 200 );
+    }
+
+    private static function search_via_searchwp( WP_REST_Request $request ) {
+        $q        = trim( (string) $request->get_param( 'q' ) );
+        $per_page = min( max( (int) $request->get_param( 'per_page', 10 ), 1 ), 20 );
+
+        if ( mb_strlen( $q ) < 2 ) {
+            return new WP_REST_Response( [ 'results' => [], 'count' => 0, 'engine' => 'searchwp', 'mode' => 'too-short' ], 200 );
+        }
+
+        $query = new \SearchWP\Query( $q, [
+            'engine'  => 'default',
+            'per_page'=> $per_page,
+            'page'    => 1,
+        ] );
+
+        $results = [];
+        foreach ( $query->get_results() as $result ) {
+            $qa_id = (int) $result->get_id();
+            $qa = self::get_qa_row( $qa_id );
+            if ( ! $qa ) {
+                continue;
+            }
+            $results[] = [
+                'id'       => (string) $qa->id,
+                'question' => $qa->question,
+                'slug'     => $qa->slug,
+                'views'    => (string) $qa->views,
+                'excerpt'  => wp_trim_words( $qa->answer, 30 ),
+                'score'    => 0,
+            ];
+        }
+
+        return new WP_REST_Response( [
+            'results' => $results,
+            'count'   => count( $results ),
+            'mode'    => 'searchwp',
+            'engine'  => 'searchwp',
+            'query'   => $q,
+        ], 200 );
     }
 
     /* =====================================================================
@@ -338,5 +392,17 @@ class BQA_REST {
                 OR option_name LIKE '_transient_bqa_suggest_%'
                 OR option_name LIKE '_transient_timeout_bqa_suggest_%'"
         );
+    }
+
+    private static function get_qa_row( $id ) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'bible_qa';
+        return $wpdb->get_row( $wpdb->prepare(
+            "SELECT id, question, answer, slug, views
+            FROM {$table}
+            WHERE id = %d AND status = 'published'
+            LIMIT 1",
+            $id
+        ) );
     }
 }
