@@ -65,6 +65,7 @@ function bqa_create_tables() {
         author_id bigint(20) unsigned NULL,
         source_id bigint(20) unsigned NULL,
         source_locator varchar(100) NULL,
+        featured_image_id bigint(20) unsigned NULL,
         slug varchar(255) NOT NULL,
         status varchar(20) NOT NULL DEFAULT 'published',
         views bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -74,7 +75,8 @@ function bqa_create_tables() {
         UNIQUE KEY slug (slug),
         KEY status (status),
         KEY author_id (author_id),
-        KEY source_id (source_id)
+        KEY source_id (source_id),
+        KEY featured_image_id (featured_image_id),
     ) $charset_collate;";
 
     // --- Authors ---
@@ -148,6 +150,7 @@ function bqa_create_tables() {
         results_count int NOT NULL DEFAULT 0,
         user_ip varbinary(16) NULL,
         created_at datetime NOT NULL,
+        engine varchar(20) NULL,
         PRIMARY KEY  (id),
         KEY search_term (search_term),
         KEY created_at (created_at)
@@ -184,12 +187,10 @@ function bqa_create_tables() {
 
     bqa_maybe_add_author_column();
     bqa_maybe_add_source_columns();
+    bqa_maybe_add_featured_image_column();
+    bqa_maybe_add_engine_column();
 }
 
-/**
- * Adds the author_id column to wp_bible_qa if missing.
- * Safe to call on every page load.
- */
 function bqa_maybe_add_author_column() {
     global $wpdb;
     $table = $wpdb->prefix . 'bible_qa';
@@ -210,9 +211,6 @@ function bqa_maybe_add_author_column() {
     }
 }
 
-/**
- * Adds the source_id and source_locator columns to wp_bible_qa if missing.
- */
 function bqa_maybe_add_source_columns() {
     global $wpdb;
     $table = $wpdb->prefix . 'bible_qa';
@@ -237,6 +235,45 @@ function bqa_maybe_add_source_columns() {
     ) );
     if ( ! $has_locator ) {
         $wpdb->query( "ALTER TABLE {$table} ADD COLUMN source_locator VARCHAR(100) NULL AFTER source_id" );
+    }
+}
+
+function bqa_maybe_add_featured_image_column() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'bible_qa';
+
+    $exists = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
+    if ( ! $exists ) {
+        return;
+    }
+
+    $has = $wpdb->get_var( $wpdb->prepare(
+        "SHOW COLUMNS FROM {$table} LIKE %s",
+        'featured_image_id'
+    ) );
+
+    if ( ! $has ) {
+        $wpdb->query( "ALTER TABLE {$table} ADD COLUMN featured_image_id BIGINT UNSIGNED NULL AFTER source_locator" );
+        $wpdb->query( "ALTER TABLE {$table} ADD KEY featured_image_id (featured_image_id)" );
+    }
+}
+
+function bqa_maybe_add_engine_column() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'bible_qa_search_log';
+
+    $exists = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
+    if ( ! $exists ) {
+        return;
+    }
+
+    $has = $wpdb->get_var( $wpdb->prepare(
+        "SHOW COLUMNS FROM {$table} LIKE %s",
+        'engine'
+    ) );
+
+    if ( ! $has ) {
+        $wpdb->query( "ALTER TABLE {$table} ADD COLUMN engine varchar(20) NULL AFTER created_at" );
     }
 }
 
@@ -288,26 +325,6 @@ function bqa_seed_terms() {
             'slug'      => $term[1],
             'parent_id' => 0,
         ] );
-    }
-}
-
-function bqa_maybe_add_featured_image_column() {
-    global $wpdb;
-    $table = $wpdb->prefix . 'bible_qa';
-
-    $exists = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
-    if ( ! $exists ) {
-        return;
-    }
-
-    $has = $wpdb->get_var( $wpdb->prepare(
-        "SHOW COLUMNS FROM {$table} LIKE %s",
-        'featured_image_id'
-    ) );
-
-    if ( ! $has ) {
-        $wpdb->query( "ALTER TABLE {$table} ADD COLUMN featured_image_id BIGINT UNSIGNED NULL AFTER source_locator" );
-        $wpdb->query( "ALTER TABLE {$table} ADD KEY featured_image_id (featured_image_id)" );
     }
 }
 
