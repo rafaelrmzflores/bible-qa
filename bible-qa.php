@@ -6,7 +6,7 @@
  * Version:           1.0.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
- * Author:            Your Name
+ * Author:            Rafael Ramírez
  * License:           GPL-2.0-or-later
  * Text Domain:       bible-qa
  */
@@ -96,7 +96,7 @@ function bqa_create_tables() {
         KEY wp_user_id (wp_user_id)
     ) $charset_collate;";
 
-    // --- Sources (new) ---
+    // --- Sources ---
     $sql_sources = "CREATE TABLE {$prefix}bible_qa_sources (
         source_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
         title varchar(500) NOT NULL,
@@ -155,8 +155,6 @@ function bqa_create_tables() {
         KEY search_term (search_term),
         KEY created_at (created_at)
     ) $charset_collate;";
-
-    // Add to bqa_create_tables(), after the other CREATE TABLE statements
 
     $sql_revisions = "CREATE TABLE {$prefix}bible_qa_revisions (
         revision_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -341,9 +339,9 @@ require_once BQA_PATH . 'includes/class-admin.php';
 require_once BQA_PATH . 'includes/class-revisions.php';
 require_once BQA_PATH . 'includes/class-searchwp-source.php';
 
-// Register hooks immediately. Do NOT wrap in plugins_loaded — that hook may
-// have already fired by the time this file loads, which is why the routes
-// weren't registering.
+/* -------------------------------------------------------------------------
+ * Register Hooks
+ * ---------------------------------------------------------------------- */
 BQA_REST::init();
 BQA_Shortcode::init();
 BQA_Single::init();
@@ -355,7 +353,7 @@ if ( is_admin() ) {
 }
 
 /* -------------------------------------------------------------------------
- * Temporary diagnostic route — remove once search works.
+ * Temporary diagnostic route.
  * ---------------------------------------------------------------------- */
 
 // add_action( 'rest_api_init', function() {
