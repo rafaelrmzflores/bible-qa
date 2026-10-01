@@ -337,7 +337,7 @@ require_once BQA_PATH . 'includes/class-archive.php';
 require_once BQA_PATH . 'includes/class-csv.php';
 require_once BQA_PATH . 'includes/class-admin.php';
 require_once BQA_PATH . 'includes/class-revisions.php';
-require_once BQA_PATH . 'includes/class-searchwp-source.php';
+// require_once BQA_PATH . 'includes/class-searchwp-source.php';
 
 /* -------------------------------------------------------------------------
  * Register Hooks
