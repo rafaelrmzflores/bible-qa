@@ -212,58 +212,22 @@ class BQA_REST {
 
         set_transient( $cache_key, $response, self::CACHE_TTL );
 
+        // Log the search
+        if ( $q !== '' ) {
+            global $wpdb;
+            $log_table = $wpdb->prefix . 'bible_qa_search_log';
+            $wpdb->insert( $log_table, [
+                'search_term'   => mb_substr( $q, 0, 255 ),
+                'results_count' => count( $results ),
+                'user_ip'       => isset( $_SERVER['REMOTE_ADDR'] )
+                    ? @inet_pton( $_SERVER['REMOTE_ADDR'] ) ?: null
+                    : null,
+                'created_at'    => current_time( 'mysql' ),
+            ] );
+        }
+
         return new WP_REST_Response( $response, 200 );
     }
-
-    /* =====================================================================
-     * SearchWP-backed search
-     * ================================================================== */
-
-    // private static function search_via_searchwp( WP_REST_Request $request ) {
-    //     $q        = trim( (string) $request->get_param( 'q' ) );
-    //     $per_page = min( max( (int) $request->get_param( 'per_page', 10 ), 1 ), 20 );
-
-    //     if ( mb_strlen( $q ) < 2 ) {
-    //         return new WP_REST_Response( [
-    //             'results' => [],
-    //             'count'   => 0,
-    //             'engine'  => 'searchwp',
-    //             'mode'    => 'too-short',
-    //         ], 200 );
-    //     }
-
-    //     // Use the CUSTOM engine (not 'default') — SearchWP requires custom
-    //     // sources to live in a named engine.
-    //     $query = new \SearchWP\Query( $q, [
-    //         'engine'   => 'bibleqanda',
-    //         'per_page' => $per_page,
-    //         'page'     => 1,
-    //     ] );
-
-    //     $results = [];
-    //     foreach ( $query->get_results() as $result ) {
-    //         if ( ! is_object( $result ) || ! isset( $result->id, $result->question, $result->slug ) ) {
-    //             continue;
-    //         }
-
-    //         $results[] = [
-    //             'id'       => (string) $result->id,
-    //             'question' => $result->question,
-    //             'slug'     => $result->slug,
-    //             'views'    => (string) ( $result->views ?? 0 ),
-    //             'excerpt'  => wp_trim_words( $result->answer ?? '', 30 ),
-    //             'score'    => 0,
-    //         ];
-    //     }
-
-    //     return new WP_REST_Response( [
-    //         'results' => $results,
-    //         'count'   => count( $results ),
-    //         'mode'    => 'searchwp',
-    //         'engine'  => 'searchwp',
-    //         'query'   => $q,
-    //     ], 200 );
-    // }
 
     private static function search_via_searchwp( WP_REST_Request $request ) {
     $q        = trim( (string) $request->get_param( 'q' ) );
@@ -318,6 +282,20 @@ class BQA_REST {
             'excerpt' => html_entity_decode( wp_trim_words( $qa->answer, 30 ), ENT_QUOTES, 'UTF-8' ),
             'score'    => isset( $row['relevance'] ) ? (int) $row['relevance'] : 0,
         ];
+    }
+
+    // Log the search
+    if ( $q !== '' ) {
+        global $wpdb;
+        $log_table = $wpdb->prefix . 'bible_qa_search_log';
+        $wpdb->insert( $log_table, [
+            'search_term'   => mb_substr( $q, 0, 255 ),
+            'results_count' => count( $results ),
+            'user_ip'       => isset( $_SERVER['REMOTE_ADDR'] )
+                ? @inet_pton( $_SERVER['REMOTE_ADDR'] ) ?: null
+                : null,
+            'created_at'    => current_time( 'mysql' ),
+        ] );
     }
 
     return new WP_REST_Response( [
