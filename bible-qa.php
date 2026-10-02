@@ -3,7 +3,7 @@
  * Plugin Name:       Bible Q&A
  * Plugin URI:        https://example.com/bible-qa
  * Description:       A searchable database of Bible questions and answers.
- * Version:           1.0.0
+ * Version:           2.0.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Rafael Ramírez
@@ -15,11 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'BQA_VERSION', '1.0.0' );
+define( 'BQA_VERSION', '2.0.0' );
 define( 'BQA_FILE', __FILE__ );
 define( 'BQA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BQA_URL',  plugin_dir_url( __FILE__ ) );
-define( 'BQA_DB_VERSION', '1.1.0' );
+define( 'BQA_DB_VERSION', '2.0.0' );
 
 /* -------------------------------------------------------------------------
  * Activation / Deactivation
@@ -411,4 +411,60 @@ if ( is_admin() ) {
 //             return new WP_REST_Response( $out, 200 );
 //         },
 //     ] );
+// } );
+
+// add_action( 'admin_notices', function() {
+//     if ( ! current_user_can( 'manage_options' ) ) return;
+
+//     $msg = [];
+//     $msg[] = 'BQA Source loaded: ' . ( class_exists( 'BQA_SearchWP_Source' ) ? 'YES' : 'NO' );
+//     $msg[] = 'SearchWP\\Source exists: ' . ( class_exists( '\SearchWP\Source' ) ? 'YES' : 'NO' );
+//     $msg[] = 'SearchWP\\Query exists: ' . ( class_exists( '\SearchWP\Query' ) ? 'YES' : 'NO' );
+
+//     // Check if our filter is registered
+//     global $wp_filter;
+//     $has_filter = false;
+//     if ( ! empty( $wp_filter['searchwp\sources'] ) ) {
+//         $has_filter = true;
+//     }
+//     $msg[] = 'searchwp\\sources filter registered: ' . ( $has_filter ? 'YES' : 'NO' );
+
+//     echo '<div class="notice notice-info"><p>' . esc_html( implode( ' | ', $msg ) ) . '</p></div>';
+// } );
+
+// add_action( 'admin_notices', function() {
+//     if ( ! current_user_can( 'manage_options' ) ) return;
+//     if ( ! class_exists( 'BQA_SearchWP_Source' ) ) {
+//         echo '<div class="notice notice-error"><p>BQA_SearchWP_Source class NOT loaded</p></div>';
+//         return;
+//     }
+
+//     $source = new BQA_SearchWP_Source();
+
+//     echo '<div class="notice notice-info"><p><strong>BQA SearchWP Source Diagnostic</strong><br>';
+//     echo 'Name: <code>' . esc_html( $source->get_name() ) . '</code><br>';
+//     echo 'DB Table: <code>' . esc_html( $source->get_db_table() ) . '</code><br>';
+//     echo 'DB ID Column: <code>' . esc_html( $source->get_db_id_column() ) . '</code><br>';
+//     echo 'Is valid: ' . ( $source->is_valid() ? '<span style="color:green"><strong>YES</strong></span>' : '<span style="color:red"><strong>NO</strong></span>' ) . '<br>';
+
+//     $attrs = $source->get_attributes();
+//     echo 'Attributes: ';
+//     if ( empty( $attrs ) ) {
+//         echo '<span style="color:red">EMPTY</span>';
+//     } else {
+//         foreach ( $attrs as $name => $attr ) {
+//             echo '<code>' . esc_html( $name ) . '</code> ';
+//         }
+//     }
+//     echo '</p></div>';
+
+//     // Also check what SearchWP currently has registered
+//     if ( class_exists( '\SearchWP' ) && method_exists( '\SearchWP', 'get_sources' ) ) {
+//         $sources = \SearchWP::get_sources();
+//         echo '<div class="notice notice-info"><p><strong>SearchWP registered sources:</strong> ';
+//         foreach ( $sources as $s ) {
+//             echo '<code>' . esc_html( $s->get_name() ) . '</code> ';
+//         }
+//         echo '</p></div>';
+//     }
 // } );
