@@ -46,14 +46,16 @@ class BQA_Shortcode {
         wp_enqueue_style( 'bible-qa-search' );
 
         ob_start(); ?>
-        <div class="bqa-search-wrap">
+       <div class="bqa-search-wrap">
+        <div class="bqa-search-input-wrap">
             <input type="search"
-                   id="bible-qa-search"
-                   class="bqa-input"
-                   placeholder="<?php echo esc_attr( $atts['placeholder'] ); ?>"
-                   autocomplete="off" />
-            <div id="bible-qa-results" class="bqa-results" aria-live="polite"></div>
+                id="bible-qa-search"
+                class="bqa-input"
+                placeholder="<?php echo esc_attr( $atts['placeholder'] ); ?>"
+                autocomplete="off" />
         </div>
+        <div id="bible-qa-results" class="bqa-results" aria-live="polite"></div>
+    </div>
         <?php
         return ob_get_clean();
     }
