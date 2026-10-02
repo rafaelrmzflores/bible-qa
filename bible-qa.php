@@ -3,7 +3,7 @@
  * Plugin Name:       Bible Q&A
  * Plugin URI:        https://example.com/bible-qa
  * Description:       A searchable database of Bible questions and answers.
- * Version:           2.0.0
+ * Version:           3.0.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Rafael Ramírez
@@ -15,11 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'BQA_VERSION', '2.0.0' );
+define( 'BQA_VERSION', '3.0.0' );
 define( 'BQA_FILE', __FILE__ );
 define( 'BQA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BQA_URL',  plugin_dir_url( __FILE__ ) );
-define( 'BQA_DB_VERSION', '2.0.0' );
+define( 'BQA_DB_VERSION', '3.0.0' );
 
 /* -------------------------------------------------------------------------
  * Activation / Deactivation
@@ -337,7 +337,8 @@ require_once BQA_PATH . 'includes/class-archive.php';
 require_once BQA_PATH . 'includes/class-csv.php';
 require_once BQA_PATH . 'includes/class-admin.php';
 require_once BQA_PATH . 'includes/class-revisions.php';
-// require_once BQA_PATH . 'includes/class-searchwp-source.php';
+require_once BQA_PATH . 'includes/class-searchwp-source.php';
+require_once BQA_PATH . 'includes/class-analytics.php';
 
 /* -------------------------------------------------------------------------
  * Register Hooks
@@ -347,6 +348,7 @@ BQA_Shortcode::init();
 BQA_Single::init();
 BQA_Archive::init();
 BQA_Revisions::init();
+BQA_Analytics::init();
 BQA_CSV::init();
 if ( is_admin() ) {
     BQA_Admin::init();
